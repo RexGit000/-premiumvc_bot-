@@ -2,6 +2,7 @@ const { Scenes, Markup } = require('telegraf');
 const { message } = require('telegraf/filters');
 const Package = require('../models/Package');
 const { mainAdminKeyboard } = require('../keyboards/admin');
+const { getSubscriptionDurationText } = require('../services/subscriptionService');
 
 const editPackageScene = new Scenes.BaseScene('EDIT_PACKAGE');
 
@@ -17,7 +18,9 @@ async function showPackageList(ctx) {
   }
   const rows = packages.map((p) => [
     Markup.button.callback(
-      `⭐ ${p.stars} Stars → 🎬 ${p.mediaCount} Media  [edit]`,
+      p.type === 'subscription'
+        ? `👑 ${p.name} · ⭐ ${p.stars} · ${getSubscriptionDurationText(p)} / ${p.dailyMediaCount} 🎬 per day [edit]`
+        : `⭐ ${p.stars} Stars → 🎬 ${p.mediaCount} Media [edit]`,
       `edit_pkg:${p._id}`
     ),
   ]);
@@ -74,7 +77,9 @@ editPackageScene.on(message('text'), async (ctx) => {
   );
 
   await ctx.reply(
-    `✅ *${pkg.name}* updated → ⭐ ${pkg.stars} Stars for 🎬 ${pkg.mediaCount} Media.`,
+    pkg.type === 'subscription'
+      ? `✅ *${pkg.name}* updated → ⭐ ${pkg.stars} Stars for ${getSubscriptionDurationText(pkg)} / ${pkg.dailyMediaCount} 🎬 per day.`
+      : `✅ *${pkg.name}* updated → ⭐ ${pkg.stars} Stars for 🎬 ${pkg.mediaCount} Media.`,
     { parse_mode: 'Markdown' }
   );
   return leave(ctx, '↩️ Back to admin panel.');

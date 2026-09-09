@@ -1,5 +1,5 @@
 {
-  "name": "stars-to-media-bot-v2",
+  "name": "vidmatrix",
   "version": "1.0.0",
   "description": "Telegram Stars Media Delivery Bot",
   "main": "src/server.js",
@@ -7,7 +7,8 @@
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "seed": "node src/seed.js",
-    "seed:admins": "node src/seed.js --admins-only"
+    "seed:admins": "node src/seed.js --admins-only",
+    "test:weekly-broadcast": "node src/scripts/testWeeklyBroadcast.js"
   },
   "dependencies": {
     "dotenv": "^16.4.5",

@@ -9,7 +9,8 @@ const { mainUserKeyboard, startInlineKeyboard } = require('../keyboards/user');
 const { mainAdminKeyboard, mediaManageKeyboard, adminManageKeyboard } = require('../keyboards/admin');
 const { formatDate } = require('../utils/helpers');
 const { POINTS_PER_MEDIA } = require('../constants');
-const { buildTiersList } = require('../utils/referral');
+const { buildSubscriptionSummary } = require('../services/subscriptionService');
+const { getUserWeeklyStanding } = require('../services/leaderboardService');
 
 const MEDIA_PAGE_SIZE = 5;
 const USER_PAGE_SIZE  = 10;
@@ -78,19 +79,34 @@ module.exports = (bot) => {
         { new: true }
       );
 
-      const packages    = await Package.find({ isActive: true }).sort('order');
+      const [packages, updatesChannelUsername, weeklyStanding] = await Promise.all([
+        Package.find({ isActive: true }).sort('order'),
+        Settings.get('updatesChannelUsername'),
+        getUserWeeklyStanding(ctx.from.id),
+      ]);
       const memberCount = await User.countDocuments();
+      const weeklyRankText = weeklyStanding.rank ? `#${weeklyStanding.rank}` : '#--';
 
       const welcomeText =
         `❤️ Welcome to the Premium Video Club! 👋\n\n` +
-        `🔥 *Invite friends and earn FREE premium videos!*\n\n` +
-        `👥 *Referral Rewards:*\n${buildTiersList()}\n\n` +
-        `⭐ Start inviting and unlock your rewards! ⭐`;
+        `🔥 *Invite friends and compete weekly!*\n\n` +
+        `📊 *Your Account*\n` +
+        `👥 Referrals: *${user?.inviteCount || 0}*\n` +
+        `🏆 Weekly Rank: *${weeklyRankText}*\n` +
+        `💎 Membership: *${buildSubscriptionSummary(user?.subscription)}*\n\n` +
+        `🏆 *Weekly Championship*\n` +
+        `🥇 #1 = 700 videos + Champion Badge\n` +
+        `🥈 #2 = 600 videos + Elite Badge\n` +
+        `🥉 #3 = 500 videos + Promoter Badge\n` +
+        `🏅 #4-5 = 230 videos\n` +
+        `🏅 #6-10 = 170 videos\n` +
+        `🏅 #11-20 = 15 videos\n\n` +
+        `⭐ Start inviting and climb the leaderboard! ⭐`;
 
       await ctx.reply(welcomeText, {
         parse_mode: 'Markdown',
         ...mainUserKeyboard(true),
-        ...startInlineKeyboard(user || { inviteCount: 0 }, packages, true, memberCount),
+        ...startInlineKeyboard(user || { inviteCount: 0 }, packages, true, memberCount, updatesChannelUsername),
       });
     } catch (err) {
       if (err?.response?.error_code === 403) return;
@@ -300,6 +316,12 @@ module.exports = (bot) => {
   bot.hears('📺 File Channel', async (ctx) => {
     if (!adminGuard(ctx)) return;
     return ctx.scene.enter('SET_CHANNEL');
+  });
+
+  // ── Set Updates Channel ───────────────────────────────────────────────────
+  bot.hears('📢 Updates Channel', async (ctx) => {
+    if (!adminGuard(ctx)) return;
+    return ctx.scene.enter('SET_UPDATES_CHANNEL');
   });
 
   // ── User List (paginated) ─────────────────────────────────────────────────

@@ -6,8 +6,9 @@ function mainAdminKeyboard() {
   return Markup.keyboard([
     ['📁 Media Management', '👥 Admin Management'],
     ['📢 Broadcast',        '📦 Package Settings'],
-    ['📺 File Channel',     '📋 User List'],
-    ['🎁 Gift Media',       toggleBtn],
+    ['📺 File Channel',     '📢 Updates Channel'],
+    ['📋 User List',        '🎁 Gift Media'],
+    [toggleBtn],
     ['👤 Switch to User View'],
   ]).resize();
 }

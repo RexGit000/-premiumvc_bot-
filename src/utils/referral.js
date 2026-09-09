@@ -1,5 +1,3 @@
-const { POINTS_PER_MEDIA } = require('../constants');
-
 const REFERRAL_TIERS = [
   { id: 'bronze',   name: 'Bronze',   emoji: '🥉', invites: 2,   reward: 10   },
   { id: 'silver',   name: 'Silver',   emoji: '🥈', invites: 5,   reward: 25   },
@@ -23,7 +21,7 @@ function getNextTier(inviteCount) {
   return REFERRAL_TIERS.find((t) => t.invites > inviteCount) || null;
 }
 
-// Awards newly unlocked tiers to the user. Mutates user.points and user.claimedTiers.
+// Awards newly unlocked tiers to the user. Mutates user.claimedTiers.
 // Returns array of newly unlocked tiers.
 function checkAndAwardTiers(user) {
   if (!user.claimedTiers) user.claimedTiers = [];
@@ -34,7 +32,6 @@ function checkAndAwardTiers(user) {
     if (user.inviteCount >= tier.invites && !claimed.has(tier.id)) {
       newlyUnlocked.push(tier);
       user.claimedTiers.push(tier.id);
-      user.points = (user.points || 0) + tier.reward * POINTS_PER_MEDIA;
     }
   }
 
